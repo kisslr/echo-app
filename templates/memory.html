@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}时光留声机 - 回声{% endblock %}
+
+{% block content %}
+<!-- 顶部栏 -->
+<div class="top-bar">
+  <span class="top-bar-title">时光留声机</span>
+</div>
+
+<div class="page-content">
+  <!-- 统计卡片 -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card">
+      <div class="stat-num" id="statConversations">0</div>
+      <div class="stat-label">次对话</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statVoices">0</div>
+      <div class="stat-label">个声音</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statMostChatted" style="font-size:18px;">暂无</div>
+      <div class="stat-label">最常聊</div>
+    </div>
+  </div>
+
+  <!-- 时间线列表 -->
+  <div class="section-header">
+    <span class="section-title">回忆时间线</span>
+  </div>
+
+  <!-- 空状态 -->
+  <div class="empty-state-card" id="timelineEmpty">
+    <div class="empty-icon" style="font-size:36px;">📜</div>
+    <div class="empty-title" style="font-size:15px;">还没有对话记录</div>
+    <div class="empty-desc">去和保存的声音说说话吧</div>
+    <a class="empty-btn" href="/">去对话</a>
+  </div>
+
+  <div class="timeline" id="timeline"></div>
+
+  <!-- 话题标签云 -->
+  <div class="section-header mt-24">
+    <span class="section-title">经常聊到的话题</span>
+  </div>
+  <div class="tag-cloud" id="tagCloud" style="padding-bottom:80px;">
+    <span style="font-size:13px;color:#999;">加载中...</span>
+  </div>
+</div>
+
+<!-- 底部导航 -->
+<nav class="bottom-nav">
+  <a href="/" class="nav-item">
+    <span class="nav-icon">🏠</span>
+    <span>首页</span>
+  </a>
+  <a href="/discover" class="nav-item">
+    <span class="nav-icon">🔍</span>
+    <span>发现</span>
+  </a>
+  <a href="/memory" class="nav-item active">
+    <span class="nav-icon">💾</span>
+    <span>回忆</span>
+  </a>
+</nav>
+
+<style>
+.timeline-accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.timeline-accordion-body.open {
+  max-height: 200px;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  loadMemoryData();
+
+  function loadMemoryData() {
+    fetchStats().then(function(stats) {
+      updateStats(stats);
+    }).catch(function() {
+      updateStatsFromLocal();
+    });
+
+    loadTimeline();
+    loadTagCloud();
+  }
+
+  function updateStats(stats) {
+    animateNumber(document.getElementById('statConversations'), stats.total_conversations || 0);
+    animateNumber(document.getElementById('statVoices'), stats.total_voices || 0);
+    var mostEl = document.getElementById('statMostChatted');
+    if (mostEl) {
+      mostEl.textContent = stats.most_chatted || '暂无';
+    }
+  }
+
+  function updateStatsFromLocal() {
+    var voices = JSON.parse(localStorage.getItem('echo_voices') || '[]');
+    var totalVoices = voices.length;
+    var totalConversations = 0;
+    var nameCounts = {};
+
+    // 遍历所有 chat_history_* 键
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key.indexOf('chat_history_') === 0 && key.indexOf('chat_history_name_') === -1) {
+        var msgs = JSON.parse(localStorage.getItem(key) || '[]');
+        totalConversations += msgs.length;
+
+        // 尝试匹配 voice name
+        var voiceId = key.replace('chat_history_', '');
+        voices.forEach(function(v) {
+          if (v.id === voiceId) {
+            nameCounts[v.name] = (nameCounts[v.name] || 0) + msgs.length;
+          }
+        });
+      }
+    }
+
+    animateNumber(document.getElementById('statConversations'), totalConversations);
+    animateNumber(document.getElementById('statVoices'), totalVoices);
+
+    var mostChatted = '暂无';
+    var max = 0;
+    for (var name in nameCounts) {
+      if (nameCounts[name] > max) { max = nameCounts[name]; mostChatted = name; }
+    }
+    var mostEl = document.getElementById('statMostChatted');
+    if (mostEl) mostEl.textContent = mostChatted;
+  }
+
+  function animateNumber(el, target) {
+    if (!el) return;
+    var current = 0;
+    var step = Math.max(1, Math.ceil(target / 30));
+    var timer = setInterval(function() {
+      current += step;
+      if (current >= target) { current = target; clearInterval(timer); }
+      el.textContent = current;
+    }, 30);
+  }
+
+  function loadTimeline() {
+    var container = document.getElementById('timeline');
+    var empty = document.getElementById('timelineEmpty');
+    if (!container) return;
+
+    var items = [];
+
+    // 收集所有对话历史
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key.indexOf('chat_history_') !== 0 || key.indexOf('chat_history_name_') === 0) continue;
+
+      var voiceId = key.replace('chat_history_', '');
+      var msgs = JSON.parse(localStorage.getItem(key) || '[]');
+      if (msgs.length === 0) continue;
+
+      // 找 voice name
+      var voiceName = '';
+      var voices = JSON.parse(localStorage.getItem('echo_voices') || '[]');
+      voices.forEach(function(v) { if (v.id === voiceId) voiceName = v.name; });
+      if (!voiceName) voiceName = '长辈';
+
+      // 用户消息列表（用作摘要）
+      var userMsgs = msgs.filter(function(m) { return m.role === 'user'; });
+      var lastMsg = msgs[msgs.length - 1];
+
+      items.push({
+        voiceId: voiceId,
+        voiceName: voiceName,
+        date: lastMsg.created_at,
+        totalMsgs: msgs.length,
+        summary: userMsgs.length > 0 ? userMsgs[userMsgs.length - 1].content : '',
+        lastContent: lastMsg ? lastMsg.content : ''
+      });
+    }
+
+    if (items.length === 0) {
+      if (empty) empty.style.display = 'block';
+      container.innerHTML = '';
+      return;
+    }
+
+    if (empty) empty.style.display = 'none';
+
+    // 按时间倒序
+    items.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+
+    var html = '';
+    items.forEach(function(item) {
+      var summary = item.summary.length > 30 ? item.summary.slice(0, 30) + '...' : item.summary;
+      var dateStr = TimeUtils.formatDate(item.date);
+
+      html += '' +
+        '<div class="timeline-item" onclick="toggleAccordion(this)">' +
+          '<div class="tl-date">' + dateStr + '</div>' +
+          '<div class="tl-content">' +
+            '<div class="tl-person">和 ' + escapeHTML(item.voiceName) + ' 的对话</div>' +
+            '<div class="tl-summary">' + escapeHTML(summary || '一段温暖的对话') + '</div>' +
+            '<span class="tl-play">▶ 播放录音 · ' + item.totalMsgs + '条消息</span>' +
+          '</div>' +
+          '<div class="timeline-accordion-body">' +
+            '<div style="padding:12px 14px; font-size:13px; color:#666; line-height:1.6;">' +
+              escapeHTML(item.lastContent) +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    });
+
+    container.innerHTML = html;
+  }
+
+  function loadTagCloud() {
+    var cloud = document.getElementById('tagCloud');
+    if (!cloud) return;
+
+    var keywords = {
+      '童年': 0, '美食': 0, '故事': 0, '梦想': 0, '过年': 0,
+      '爱情': 0, '工作': 0, '健康': 0, '学习': 0, '旅行': 0,
+      '音乐': 0, '读书': 0, '回忆': 0, '家庭': 0, '朋友': 0,
+      '青春': 0, '人生': 0, '温暖': 0, '幸福': 0, '传承': 0
+    };
+
+    // 从所有对话中统计关键词
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key.indexOf('chat_history_') !== 0 || key.indexOf('chat_history_name_') === 0) continue;
+      var msgs = JSON.parse(localStorage.getItem(key) || '[]');
+      msgs.forEach(function(m) {
+        var text = m.content || '';
+        for (var kw in keywords) {
+          if (text.indexOf(kw) !== -1) keywords[kw]++;
+        }
+      });
+    }
+
+    // 筛选有匹配的关键词
+    var entries = [];
+    for (var kw in keywords) {
+      if (keywords[kw] > 0) entries.push({ word: kw, count: keywords[kw] });
+    }
+
+    if (entries.length === 0) {
+      cloud.innerHTML = '<span style="font-size:13px;color:#999;">多聊聊天，这里会出现话题标签</span>';
+      return;
+    }
+
+    // 排序
+    entries.sort(function(a, b) { return b.count - a.count; });
+
+    var maxCount = entries[0].count;
+    var minCount = entries[entries.length - 1].count;
+    var range = maxCount - minCount || 1;
+
+    // 背景渐变色
+    var bgColors = ['#FFF0E0', '#FFE0C0', '#FFD0A0', '#FFC080', '#FFB870', '#F0A850', '#E8943A'];
+
+    var html = '';
+    entries.forEach(function(entry) {
+      var ratio = (entry.count - minCount) / range;
+      var fontSize = 12 + Math.round(ratio * 6); // 12-18px
+      var bgIdx = Math.min(Math.floor(ratio * (bgColors.length - 1)), bgColors.length - 1);
+      var bg = bgColors[bgIdx];
+      var color = ratio > 0.6 ? '#fff' : '#3C2415';
+
+      html += '<span style="display:inline-block; padding:6px 14px; background:' + bg +
+        '; border-radius:16px; font-size:' + fontSize + 'px; color:' + color +
+        '; margin:4px; cursor:default;">' + entry.word + '</span>';
+    });
+
+    cloud.innerHTML = html;
+  }
+
+  function escapeHTML(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  window.toggleAccordion = function(el) {
+    var body = el.querySelector('.timeline-accordion-body');
+    if (!body) return;
+    if (body.classList.contains('open')) {
+      body.classList.remove('open');
+    } else {
+      body.classList.add('open');
+    }
+  };
+})();
+</script>
+{% endblock %}

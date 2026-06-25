@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}发现 - 回声{% endblock %}
+
+{% block content %}
+<!-- 顶部栏 -->
+<div class="top-bar">
+  <span class="top-bar-title">发现</span>
+</div>
+
+<div class="page-content">
+  <!-- 🚧 搜索区（端侧语义搜索预留，当前为关键词过滤） -->
+  <div class="mb-16">
+    <input
+      type="text"
+      class="input-field"
+      id="discoverSearch"
+      placeholder="搜索声音档案..."
+      autocomplete="off"
+    />
+  </div>
+
+  <!-- 已保存的声音 -->
+  <div class="section-header">
+    <span class="section-title">已保存的声音</span>
+  </div>
+  <div id="discoverVoices">
+    <div class="empty-state" id="discoverEmpty" style="padding:24px 0;">
+      <span style="font-size:13px;color:#999;">还没有声音档案，去<strong>首页</strong>创建吧</span>
+    </div>
+  </div>
+
+  <!-- 热门话题 -->
+  <div class="section-header mt-20">
+    <span class="section-title">热门话题</span>
+  </div>
+  <div class="tag-cloud">
+    <span class="tag hot">童年记忆</span>
+    <span class="tag hot">家庭故事</span>
+    <span class="tag">青春岁月</span>
+    <span class="tag hot">人生感悟</span>
+    <span class="tag">美食记忆</span>
+    <span class="tag hot">梦想追求</span>
+    <span class="tag">家族传承</span>
+    <span class="tag">温暖瞬间</span>
+  </div>
+
+  <!-- 推荐录制 -->
+  <div class="section-header mt-20">
+    <span class="section-title">推荐录制</span>
+  </div>
+  <div class="topic-guide-card" onclick="location.href='/record?topic=' + encodeURIComponent('您年轻时最喜欢的歌是哪一首？')">
+    <div class="tg-question">"您年轻时最喜欢的歌是哪一首？"</div>
+    <div class="tg-hint">音乐回忆 · 约2分钟</div>
+  </div>
+  <div class="topic-guide-card" onclick="location.href='/record?topic=' + encodeURIComponent('您和另一半是怎么认识的？')">
+    <div class="tg-question">"您和另一半是怎么认识的？"</div>
+    <div class="tg-hint">爱情故事 · 约3分钟</div>
+  </div>
+  <div class="topic-guide-card" onclick="location.href='/record?topic=' + encodeURIComponent('我们家最大的变化是什么？')">
+    <div class="tg-question">"我们家最大的变化是什么？"</div>
+    <div class="tg-hint">家族变迁 · 约4分钟</div>
+  </div>
+</div>
+
+<!-- 底部导航 -->
+<nav class="bottom-nav">
+  <a href="/" class="nav-item">
+    <span class="nav-icon">🏠</span>
+    <span>首页</span>
+  </a>
+  <a href="/discover" class="nav-item active">
+    <span class="nav-icon">🔍</span>
+    <span>发现</span>
+  </a>
+  <a href="/memory" class="nav-item">
+    <span class="nav-icon">💾</span>
+    <span>回忆</span>
+  </a>
+</nav>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var allVoices = [];
+
+  fetchVoices().then(function(voices) {
+    allVoices = voices || [];
+    renderVoiceCards(allVoices);
+  });
+
+  // 搜索过滤
+  var searchInput = document.getElementById('discoverSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      var query = this.value.trim().toLowerCase();
+      var filtered = query
+        ? allVoices.filter(function(v) { return (v.name || '').toLowerCase().indexOf(query) !== -1; })
+        : allVoices;
+      renderVoiceCards(filtered);
+    });
+  }
+
+  function renderVoiceCards(voices) {
+    var container = document.getElementById('discoverVoices');
+    var empty = document.getElementById('discoverEmpty');
+    if (!container) return;
+
+    if (!voices || voices.length === 0) {
+      if (empty) empty.style.display = 'block';
+      container.innerHTML = '';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    container.innerHTML = voices.map(function(v) {
+      var id = v.id || '';
+      var name = v.name || '';
+      var avatar = v.avatar_emoji || '👤';
+      var time = v.created_at ? TimeUtils.formatDate(v.created_at) : '';
+      return '' +
+        '<div class="voice-card" onclick="location.href=\'/chat?voice_id=' + id + '&name=' + encodeURIComponent(name) + '\'">' +
+          '<div class="vc-avatar">' + avatar + '</div>' +
+          '<div class="vc-info">' +
+            '<div class="vc-name">' + name + '</div>' +
+            '<div class="vc-wave">' +
+              '<div class="wave-bar"></div><div class="wave-bar"></div>' +
+              '<div class="wave-bar"></div><div class="wave-bar"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="vc-time">' + time + '</div>' +
+        '</div>';
+    }).join('');
+  }
+})();
+</script>
+{% endblock %}

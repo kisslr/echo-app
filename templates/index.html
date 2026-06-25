@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}我的声音匣子 - 回声{% endblock %}
+
+{% block content %}
+<!-- 问候区 -->
+<div class="greeting">
+  <div class="greeting-emoji" id="greetingEmoji">🌅</div>
+  <div class="greeting-text" id="greetingText">早上好</div>
+  <div class="greeting-date" id="greetingDate"></div>
+</div>
+
+<!-- 声音档案列表区 -->
+<div class="page-content" id="voiceListArea">
+  <!-- 空状态 -->
+  <div class="empty-state-card" id="emptyState">
+    <div class="empty-icon">🎙️</div>
+    <div class="empty-title">还没有保存的声音</div>
+    <div class="empty-desc">录下长辈的声音，让记忆永远鲜活</div>
+    <a class="empty-btn" href="/record">＋ 创建声音档案</a>
+  </div>
+
+  <!-- 声音档案卡片列表 -->
+  <div id="voiceCards"></div>
+  <!-- 删除提示 -->
+  <div id="deleteHint" style="display:none; text-align:center; padding:8px 0; font-size:12px; color:#999;">
+    💡 长按卡片可删除声音档案
+  </div>
+</div>
+
+<!-- 底部导航 -->
+<nav class="bottom-nav">
+  <a href="/" class="nav-item active">
+    <span class="nav-icon">🏠</span>
+    <span>首页</span>
+  </a>
+  <a href="/discover" class="nav-item">
+    <span class="nav-icon">🔍</span>
+    <span>发现</span>
+  </a>
+  <a href="/memory" class="nav-item">
+    <span class="nav-icon">💾</span>
+    <span>回忆</span>
+  </a>
+</nav>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var greeting = TimeUtils.getGreeting();
+  var emojiEl = document.getElementById('greetingEmoji');
+  var textEl = document.getElementById('greetingText');
+  var dateEl = document.getElementById('greetingDate');
+
+  if (emojiEl) emojiEl.textContent = greeting.emoji;
+  if (textEl) textEl.textContent = greeting.text;
+  if (dateEl) dateEl.textContent = TimeUtils.currentDateStr();
+
+  loadVoiceList();
+
+  function loadVoiceList() {
+    var container = document.getElementById('voiceCards');
+    var emptyState = document.getElementById('emptyState');
+    if (!container) return;
+
+    fetchVoices().then(function(archives) {
+      renderCards(archives, container, emptyState);
+    });
+  }
+
+  function renderCards(archives, container, emptyState) {
+    if (!container) return;
+
+    var hintEl = document.getElementById('deleteHint');
+
+    if (!archives || archives.length === 0) {
+      if (emptyState) emptyState.style.display = 'block';
+      if (hintEl) hintEl.style.display = 'none';
+      container.innerHTML = '';
+      return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+    if (hintEl) hintEl.style.display = 'block';
+
+    container.innerHTML = archives.map(function(item, i) {
+      var id = item.id || '';
+      var name = item.name || '';
+      return '' +
+        '<div class="voice-card" data-id="' + id + '" data-name="' + escapeHTML(name) + '">' +
+          '<div class="vc-avatar">' + (item.avatar_emoji || item.avatar || '👤') + '</div>' +
+          '<div class="vc-info">' +
+            '<div class="vc-name">' + escapeHTML(name) + '</div>' +
+            '<div class="vc-wave">' +
+              '<div class="wave-bar"></div>' +
+              '<div class="wave-bar"></div>' +
+              '<div class="wave-bar"></div>' +
+              '<div class="wave-bar"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="vc-meta">' +
+            '<div class="vc-time">' + TimeUtils.formatDate(item.created_at || item.createdAt) + '</div>' +
+            '<div class="vc-delete-hint" title="长按删除">🗑</div>' +
+          '</div>' +
+        '</div>';
+    }).join('');
+
+    bindCardEvents();
+  }
+
+  function bindCardEvents() {
+    var cards = document.querySelectorAll('.voice-card');
+    cards.forEach(function(card) {
+      var pressTimer = null;
+
+      card.addEventListener('click', function() {
+        var name = this.getAttribute('data-name');
+        var id = this.getAttribute('data-id');
+        openChat(name, id);
+      });
+
+      card.addEventListener('touchstart', function(e) {
+        var self = this;
+        pressTimer = setTimeout(function() {
+          var name = self.getAttribute('data-name');
+          var id = self.getAttribute('data-id');
+          confirmDelete(name, id);
+        }, 600);
+      });
+
+      card.addEventListener('touchend', function() { clearTimeout(pressTimer); });
+      card.addEventListener('touchmove', function() { clearTimeout(pressTimer); });
+
+      card.addEventListener('mousedown', function() {
+        var self = this;
+        pressTimer = setTimeout(function() {
+          var name = self.getAttribute('data-name');
+          var id = self.getAttribute('data-id');
+          confirmDelete(name, id);
+        }, 600);
+      });
+
+      card.addEventListener('mouseup', function() { clearTimeout(pressTimer); });
+      card.addEventListener('mouseleave', function() { clearTimeout(pressTimer); });
+    });
+  }
+
+  function confirmDelete(name, id) {
+    if (!confirm('确定删除「' + name + '」的声音档案吗？此操作不可撤销。')) return;
+
+    if (id) {
+      fetch('/api/voices/' + id, { method: 'DELETE' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success) showToast('已删除「' + name + '」', 'success');
+          else showToast('删除失败', 'error');
+          loadVoiceList();
+        }).catch(function() {
+          showToast('删除失败', 'error');
+          loadVoiceList();
+        });
+    }
+
+    var voices = JSON.parse(localStorage.getItem('echo_voices') || '[]');
+    voices = voices.filter(function(v) { return v.name !== name && v.id !== id; });
+    localStorage.setItem('echo_voices', JSON.stringify(voices));
+  }
+
+  function escapeHTML(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  window.openChat = function(name, id) {
+    Storage.set('currentPersonName', name);
+    Storage.set('currentVoiceId', id);
+    var url = '/chat?name=' + encodeURIComponent(name);
+    if (id) url += '&voice_id=' + id;
+    window.location.href = url;
+  };
+})();
+</script>
+{% endblock %}

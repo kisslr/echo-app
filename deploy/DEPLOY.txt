@@ -1,0 +1,78 @@
+=== 回声 - Render.com 免费部署指南 ===
+目标: 获得永久公网链接, 评委手机直接访问, 云端AI API完全可用
+平台: Render.com (render.com)
+费用: 零
+耗时: 约20分钟
+结果: https://你的应用名.onrender.com
+
+═══════════════════════════════════
+第1步: 准备工作
+═══════════════════════════════════
+1. 注册 GitHub 账号: https://github.com → Sign up
+2. 在 GitHub 新建仓库: 点右上角 + → New repository
+   - Repository name: echo-app
+   - 选 Private
+   - 不要勾选任何初始化选项
+   - 点 Create repository
+
+3. 在你的电脑上, 打开命令行, 粘贴执行:
+```bash
+cd /d d:\echo-app
+git init
+git add .
+git commit -m "回声 v3.6"
+git remote add origin https://github.com/你的GitHub用户名/echo-app.git
+git push -u origin main
+```
+(如果提示需要登录, 在浏览器里授权 GitHub)
+
+═══════════════════════════════════
+第2步: Render 部署
+═══════════════════════════════════
+1. 打开 https://render.com → 点 "Get Started" → 用 GitHub 账号登录
+2. 授权 Render 访问你的 GitHub 仓库
+3. Dashboard → 点 "New +" → 选 "Web Service"
+4. 搜索并选择你的 echo-app 仓库 → 点 Connect
+5. 填写配置:
+   - Name: echo-app
+   - Region: Singapore (离国内最近)
+   - Runtime: Python 3
+   - Build Command: pip install -r requirements.txt
+   - Start Command: python app.py
+   - Instance Type: Free
+6. 点 "Create Web Service"
+7. 等待3-5分钟 → 部署完成 → 页面顶部显示 https://echo-app-xxx.onrender.com
+
+═══════════════════════════════════
+第3步: 验证
+═══════════════════════════════════
+1. 手机浏览器打开 Render 显示的 URL
+2. 应该看到回声首页
+3. 点"+" → 输入"奶奶" → 录制 → 对话
+
+⚠️ 免费版注意: 15分钟无人访问后服务休眠, 下次访问需等待30-50秒唤醒。
+   这对评委体验无影响(评审时会持续操作)。
+
+═══════════════════════════════════
+备选: PythonAnywhere
+═══════════════════════════════════
+如果 Render 注册不成功, 用 PythonAnywhere:
+1. 注册 https://www.pythonanywhere.com (Beginner免费版)
+2. Dashboard → Files → Upload 上传所有项目文件
+3. Dashboard → Consoles → Bash:
+   cd ~/echo-app
+   pip install flask flask-cors --user
+   python -c "from app import init_db; init_db()"
+4. Dashboard → Web → Add a new web app → Flask
+   - Source code: /home/用户名/echo-app
+   - WSGI 文件内容:
+     import sys, os
+     project_home = '/home/用户名/echo-app'
+     sys.path.insert(0, project_home)
+     os.chdir(project_home)
+     from app import app as application
+   - Static files: URL /static/ → Path /home/用户名/echo-app/static
+5. 点 Reload → https://用户名.pythonanywhere.com
+
+⚠️ PythonAnywhere 免费版限制出站HTTP, 云端AI API不可用,
+   但本地降级引擎自动接管, 不影响演示。

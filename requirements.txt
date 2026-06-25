@@ -1,0 +1,12 @@
+# 回声 - Python 依赖（评委双击 install.bat 必须能跑）
+# 核心后端
+flask==3.0.3
+flask-cors==4.0.0
+python-dotenv==1.0.1
+
+# AI 管线（TTS + 大模型 API 调用）
+edge-tts==6.1.9
+requests==2.31.0
+
+# 数据库：SQLite3 内置，无需额外依赖
+# 端侧推理：走 APK 原生 SDK（BlueLM 3B），此处不列编译依赖

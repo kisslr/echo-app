@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}录制 - 回声{% endblock %}
+
+{% block content %}
+<!-- 状态1：称呼输入区 -->
+<div id="state-nameInput" class="name-input-section">
+  <div class="top-bar" style="background:transparent; border-bottom:none; position:static;">
+    <a href="/" class="btn-back">←</a>
+    <span class="top-bar-title">录制声音</span>
+  </div>
+  <div class="section-icon">🎙️</div>
+  <div class="page-title">请先告诉我是谁的声音</div>
+  <p class="text-helper mt-8">例如：奶奶、爷爷、外婆</p>
+  <div class="input-group">
+    <input
+      type="text"
+      id="nameInput"
+      class="input-field record-name-input"
+      placeholder="例如：奶奶、爷爷、外婆"
+      maxlength="20"
+      autocomplete="off"
+    />
+    <button id="startRecordBtn" class="btn btn-primary btn-block">
+      开始录制
+    </button>
+  </div>
+</div>
+
+<!-- 状态2：录制界面 -->
+<div id="recordSection" style="display:none;">
+  <div class="top-bar">
+    <a href="/" class="btn-back" id="recordBackBtn">←</a>
+    <span class="top-bar-title">录制声音</span>
+  </div>
+
+  <div class="page-content">
+    <!-- 声波可视化区 -->
+    <div class="record-hero" id="recordHero">
+      <!-- 圆圈+波形条容器，互不干扰 -->
+      <div id="circleContainer" style="position:relative; width:200px; height:200px; margin:0 auto 24px; transition:transform 0.3s;">
+        <!-- 波形条叠在底层 -->
+        <div id="waveformBars" style="display:flex;align-items:flex-end;gap:4px;height:60px;
+             position:absolute; bottom:16px; left:50%; transform:translateX(-50%); z-index:2;">
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+          <div class="wf-bar" style="width:2px;min-height:4px;background:var(--color-primary);border-radius:1px;"></div>
+        </div>
+        <!-- 圆圈浮在上层，独立于波形条 -->
+        <div class="record-circle" id="recordCircle" style="position:absolute;top:0;left:0;z-index:1;">
+          <div class="circle-inner" id="circleInner">
+            <div class="circle-inner-idle">🎤</div>
+            <div class="circle-inner-recording" style="display:none;"><div class="recording-square"></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- 计时器：居中大字，录制圆圈正下方 -->
+      <div id="recordTimer" style="font-size:42px; font-weight:700; color:var(--color-primary);
+           font-variant-numeric:tabular-nums; margin:16px 0 8px;">00:00</div>
+      <div class="record-progress" id="recordProgressBar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <p class="record-progress-text" id="recordProgressText">已录制0分钟，最长10分钟</p>
+    </div>
+
+    <!-- getUserMedia 被拒时的保底方案 -->
+    <div id="nativeRecorderFallback" style="display:none; text-align:center; padding:40px 20px;">
+      <div style="font-size:48px; margin-bottom:16px;">🎙️</div>
+      <p style="font-size:16px; color:#3C2415; margin-bottom:12px;">浏览器拒绝了麦克风权限</p>
+      <p style="font-size:13px; color:#999; margin-bottom:24px;">请使用系统录音机录制后上传</p>
+      <input type="file" accept="audio/*" capture="microphone" id="nativeRecorder"
+             style="display:block; margin:0 auto; font-size:15px;" />
+      <p style="font-size:12px; color:#999; margin-top:12px;">或：请在浏览器设置中允许麦克风权限后刷新页面</p>
+    </div>
+
+    <!-- AI 话题引导卡片 -->
+    <div id="topicSection">
+      <div class="section-header">
+        <span class="section-title">AI 话题引导</span>
+      </div>
+      <div class="topic-guide-card" id="topicCard" style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="flex-shrink:0; margin-right:10px;">💬 聊聊这个：</span>
+        <span id="topicText" style="flex:1; font-size:15px; color:var(--color-text); transition:opacity 0.3s;">
+          您小时候最喜欢吃什么？
+        </span>
+        <span id="topicNext" style="flex-shrink:0; cursor:pointer; font-size:18px; padding:0 4px 0 8px; color:var(--color-primary);">→</span>
+      </div>
+    </div>
+
+    <!-- 录制按钮 -->
+    <div class="record-btn-area">
+      <button class="record-btn" id="recordBtn"></button>
+    </div>
+    <p class="text-center text-helper">点击开始录制，再次点击停止</p>
+  </div>
+</div>
+
+<!-- 状态3：确认弹窗 -->
+<div id="confirmModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+     background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center;">
+  <div style="background:var(--color-white); border-radius:20px; padding:36px 28px;
+       max-width:380px; width:90%; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.2);">
+    <div style="font-size:56px; margin-bottom:16px;">✅</div>
+    <div style="font-size:20px; font-weight:600; color:var(--color-text); margin-bottom:8px;">录制完成</div>
+    <div id="confirmDuration" style="font-size:15px; color:var(--color-text-light); margin-bottom:28px;">已录制 00:00，确定保存吗？</div>
+    <button id="btnRetry" class="btn btn-outline btn-block mb-12" style="font-size:16px;">再录一会</button>
+    <button id="btnSave" class="btn btn-primary btn-block" style="font-size:16px;">保存声音</button>
+  </div>
+</div>
+
+<!-- 状态4：上传中 -->
+<div id="state-uploading" style="display:none; text-align:center; padding:60px 20px;">
+  <div style="font-size:56px; margin-bottom:16px;">📤</div>
+  <div class="page-title">正在上传...</div>
+  <p class="text-helper mt-8">正在保存您的声音数据</p>
+  <div style="width:60px; height:60px; border:3px solid var(--color-border); border-top-color:var(--color-primary);
+       border-radius:50%; margin:24px auto; animation:spin 0.8s linear infinite;"></div>
+</div>
+
+<!-- 状态5：模型训练中 -->
+<div id="state-training" style="display:none; text-align:center; padding:60px 20px;">
+  <div style="font-size:56px; margin-bottom:16px;">🧠</div>
+  <div class="page-title">AI正在学习这个声音...</div>
+  <p class="text-helper mt-8">这需要大约20秒，请耐心等待</p>
+  <div style="width:80%; max-width:280px; margin:24px auto;">
+    <div style="height:6px; background:var(--color-border); border-radius:3px; overflow:hidden;">
+      <div id="trainingProgressFill" style="height:100%; width:0%; background:var(--color-primary);
+           border-radius:3px; transition:width 0.5s;"></div>
+    </div>
+    <div id="trainingProgressText" style="font-size:13px; color:var(--color-text-light); margin-top:8px;">0%</div>
+  </div>
+</div>
+
+<!-- 状态6：就绪 -->
+<div id="state-ready" style="display:none; text-align:center; padding:60px 20px;">
+  <div style="font-size:56px; margin-bottom:16px;">🎉</div>
+  <div class="page-title">声音模型准备就绪！</div>
+  <p class="text-helper mt-8"><span id="readyVoiceName"></span>的声音已经准备好了</p>
+  <a id="btnGoChat" class="btn btn-primary btn-block mt-20" href="#">去和ta说说话</a>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shake { 0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)} }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/record.js') }}"></script>
+<script>
+(function() {
+  // 绑定录制状态更新
+  Recorder.onStateChange = function(isRecording) {
+    var circle = DOM.el('#recordCircle');
+    var innerIdle = document.querySelector('.circle-inner-idle');
+    var innerRec = document.querySelector('.circle-inner-recording');
+
+    if (isRecording) {
+      if (circle) circle.classList.add('recording');
+      if (innerIdle) innerIdle.style.display = 'none';
+      if (innerRec) innerRec.style.display = '';
+    } else {
+      if (circle) circle.classList.remove('recording');
+      if (innerIdle) innerIdle.style.display = '';
+      if (innerRec) innerRec.style.display = 'none';
+    }
+  };
+
+  Recorder.onDurationUpdate = function(seconds) {
+    var timerEl = DOM.el('#recordTimer');
+    var progressFill = DOM.el('#progressFill');
+    var progressText = DOM.el('#recordProgressText');
+    var minutes = Math.floor(seconds / 60);
+
+    if (timerEl) {
+      timerEl.textContent = TimeUtils.formatDuration(seconds);
+    }
+    if (progressFill) {
+      var pct = Math.min(seconds / 600 * 100, 100);
+      progressFill.style.width = pct + '%';
+      if (seconds >= 600) {
+        progressFill.style.background = '#5B8C5A';
+      } else {
+        progressFill.style.background = '';
+      }
+    }
+    if (progressText) {
+      var remaining = Math.max(0, 10 - minutes);
+      progressText.textContent = '已录制' + minutes + '分钟，最长10分钟（还剩' + remaining + '分钟）';
+    }
+  };
+
+})();
+</script>
+{% endblock %}

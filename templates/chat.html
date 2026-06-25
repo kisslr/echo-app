@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}对话 - 回声{% endblock %}
+
+{% block content %}
+<!-- 顶部栏 -->
+<div class="chat-header">
+  <a href="/" class="btn-back">←</a>
+  <div class="ch-avatar" id="chatAvatar">👤</div>
+  <div class="ch-info">
+    <div class="ch-name" id="chatPersonName">长辈</div>
+    <div class="ch-subtitle" id="chatSubtitle">AI声音模型 · 上次对话：-</div>
+  </div>
+  <span class="btn-more" id="btnMore" title="更多">⋯</span>
+</div>
+
+<!-- 🚧 端侧AI模型加载指示器 -->
+<div id="aiLoadingOverlay" style="display:none; text-align:center; padding:60px 20px;">
+  <div style="font-size:48px; margin-bottom:16px;">🧠</div>
+  <div style="font-size:18px; font-weight:600; color:#3C2415; margin-bottom:8px;">AI引擎加载中</div>
+  <p style="font-size:13px; color:#999; margin-bottom:20px;" id="aiLoadStatus">正在初始化端侧AI模型...</p>
+  <div style="width:80%; max-width:280px; margin:0 auto 12px;">
+    <div style="height:6px; background:#E8E3DD; border-radius:3px; overflow:hidden;">
+      <div id="aiLoadProgressFill" style="height:100%; width:0%; background:#E8943A;
+           border-radius:3px; transition:width 0.5s;"></div>
+    </div>
+  </div>
+  <div id="aiLoadProgressPct" style="font-size:13px; color:#E8943A;">0%</div>
+  <p style="font-size:11px; color:#B0A89E; margin-top:16px;">
+    首次使用需下载AI模型（约1GB），建议WiFi连接<br/>
+    下载完成后永久离线可用
+  </p>
+</div>
+
+<!-- 对话区 -->
+<div class="chat-messages" id="chatMessages"></div>
+
+<!-- 话题推荐区（对话为空时显示） -->
+<div id="topicArea">
+  <div style="text-align:center; padding:20px 16px 8px; font-size:14px; color:#999;">
+    💡 试试这样开始对话...
+  </div>
+  <div class="topic-bar" id="topicChips">
+    <span class="topic-chip">今天天气真好，你在干嘛？</span>
+    <span class="topic-chip">我有点想你了</span>
+    <span class="topic-chip">给我讲个故事吧</span>
+    <span class="topic-chip">你以前做的那道菜怎么做的？</span>
+    <span class="topic-chip">最近有什么开心的事吗？</span>
+  </div>
+</div>
+
+<!-- 底部输入区 -->
+<div class="chat-input-area">
+  <button class="btn-voice" id="voiceBtn" title="按住录音">🎤</button>
+  <div class="input-wrapper">
+    <input
+      type="text"
+      id="messageInput"
+      placeholder="说点什么..."
+      autocomplete="off"
+    />
+  </div>
+  <button class="btn-send" id="sendBtn" title="发送">↑</button>
+</div>
+
+<style>
+@keyframes typingBounce {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-6px); }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}
