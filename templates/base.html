@@ -2,9 +2,13 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="回声">
+  <meta name="theme-color" content="#E8943A">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
   <title>{% block title %}回声{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -13,6 +17,94 @@
     {% block content %}{% endblock %}
   </div>
   <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  <script>
+  // ====== PWA 安装引导（仅 Chrome/Edge/vivo浏览器/iOS Safari） ======
+  (function() {
+    var deferredPrompt = null;
+    var installBanner = null;
+    var ua = navigator.userAgent;
+    var isIOS = /iPhone|iPad|iPod/.test(ua);
+
+    // 夸克/UC/百度/QQ/微信等浏览器不支持 PWA 安装，直接跳过
+    var unsupportedBrowsers = /Quark|UCBrowser|Baidu|QQ\/|MQQBrowser|MicroMessenger|AlipayClient/i;
+    if (unsupportedBrowsers.test(ua)) return;
+
+    function createInstallBanner() {
+      if (installBanner) return;
+      installBanner = document.createElement('div');
+      installBanner.id = 'pwaInstallBanner';
+      installBanner.style.cssText =
+        'position:fixed; bottom:0; left:0; right:0; z-index:9999; ' +
+        'background:#3C2415; color:#fff; padding:14px 16px; ' +
+        'padding-bottom:calc(14px + env(safe-area-inset-bottom, 0)); ' +
+        'display:flex; align-items:center; justify-content:space-between; ' +
+        'font-size:16px; animation: fadeIn 0.3s ease; ' +
+        'max-width:480px; margin:0 auto;';
+      installBanner.innerHTML =
+        '<span>📱 添加到主屏幕，像 App 一样使用</span>' +
+        '<button id="pwaInstallBtn" style="' +
+        'background:#E8943A; color:#fff; border:none; padding:10px 20px; ' +
+        'border-radius:20px; font-size:15px; font-weight:600; ' +
+        'white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent;' +
+        '">安装</button>';
+      document.body.appendChild(installBanner);
+
+      document.getElementById('pwaInstallBtn').addEventListener('click', function() {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then(function(result) {
+            if (result.outcome === 'accepted') {
+              installBanner.remove();
+              installBanner = null;
+            }
+            deferredPrompt = null;
+          });
+        } else if (isIOS) {
+          installBanner.innerHTML =
+            '<span style="font-size:15px;">📱 点下方 <b>分享</b> → <b>添加到主屏幕</b></span>' +
+            '<button id="pwaDismissBtn" style="' +
+            'background:transparent; color:#ccc; border:none; padding:8px;' +
+            'font-size:20px; cursor:pointer;-webkit-tap-highlight-color:transparent;' +
+            '">✕</button>';
+          document.getElementById('pwaDismissBtn').addEventListener('click', function() {
+            installBanner.remove();
+            installBanner = null;
+            localStorage.setItem('pwa_banner_dismissed', '1');
+          });
+        }
+      });
+    }
+
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             window.navigator.standalone;
+    }
+
+    // 注册 SW（所有浏览器都注册，用于离线缓存）
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(function(){});
+    }
+
+    // Android Chrome / vivo 浏览器：监听 beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (!isStandalone() && !localStorage.getItem('pwa_banner_dismissed')) {
+        createInstallBanner();
+      }
+    });
+
+    // iOS Safari：SW 注册后延迟弹引导
+    if (isIOS && !isStandalone() && !localStorage.getItem('pwa_banner_dismissed')) {
+      setTimeout(function() { createInstallBanner(); }, 3000);
+    }
+
+    window.addEventListener('appinstalled', function() {
+      if (installBanner) { installBanner.remove(); installBanner = null; }
+      deferredPrompt = null;
+    });
+  })();
+  </script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

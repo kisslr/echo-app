@@ -308,7 +308,7 @@ function showToast(message, type) {
   toast.style.cssText =
     'position:fixed; top:24px; left:50%; transform:translateX(-50%); ' +
     'background:' + (colors[type] || colors.info) + '; color:#fff; padding:12px 24px; ' +
-    'border-radius:10px; font-size:15px; z-index:9999; ' +
+    'border-radius:10px; font-size:17px; z-index:9999; ' +
     'animation: toastIn 0.3s ease; max-width:90%; text-align:center; ' +
     'pointer-events:none;';
   toast.textContent = message;

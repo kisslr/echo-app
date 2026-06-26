@@ -24,20 +24,29 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 18px;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+  height: 100%;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 18px;
+  line-height: 1.6;
   color: var(--color-text);
   background-color: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+  min-height: 100vh;
+  touch-action: pan-y manipulation;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
 }
 
 a {
@@ -78,6 +87,8 @@ input, textarea {
   min-height: 100vh;
   background-color: var(--color-bg);
   position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* === Page Content === */
@@ -88,14 +99,14 @@ input, textarea {
 
 /* === Typography === */
 .page-title {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 600;
   line-height: 1.3;
   color: var(--color-text);
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 500;
   line-height: 1.3;
   color: var(--color-text);
@@ -103,13 +114,13 @@ input, textarea {
 }
 
 .text-body {
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 18px;
+  line-height: 1.6;
   color: var(--color-text);
 }
 
 .text-helper {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   color: var(--color-text-light);
 }
@@ -136,7 +147,7 @@ input, textarea {
   min-height: 48px;
   padding: 12px 24px;
   border-radius: 24px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   transition: all 0.2s ease;
 }
@@ -182,7 +193,7 @@ input, textarea {
   background: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  font-size: 16px;
+  font-size: 18px;
   color: var(--color-text);
   transition: border-color 0.2s;
 }
@@ -220,7 +231,7 @@ input, textarea {
 }
 
 .top-bar .top-bar-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   flex: 1;
 }
@@ -252,7 +263,7 @@ input, textarea {
   gap: 2px;
   flex: 1;
   height: 100%;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--color-text-light);
   transition: color 0.2s;
   -webkit-tap-highlight-color: transparent;
@@ -260,7 +271,7 @@ input, textarea {
 }
 
 .bottom-nav .nav-item .nav-icon {
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1;
 }
 
@@ -314,14 +325,14 @@ input, textarea {
 }
 
 .empty-state .empty-title {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 500;
   color: var(--color-text);
   margin-bottom: 8px;
 }
 
 .empty-state .empty-desc {
-  font-size: 14px;
+  font-size: 16px;
   color: #999;
   line-height: 1.5;
   margin-bottom: 20px;
@@ -333,7 +344,7 @@ input, textarea {
   color: var(--color-white);
   border-radius: 24px;
   padding: 14px 36px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
@@ -374,7 +385,7 @@ input, textarea {
 }
 
 .voice-card .vc-name {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   margin-bottom: 4px;
 }
@@ -412,7 +423,7 @@ input, textarea {
 }
 
 .voice-card .vc-time {
-  font-size: 13px;
+  font-size: 15px;
   color: #999;
   flex-shrink: 0;
 }
@@ -435,18 +446,18 @@ input, textarea {
 }
 
 .greeting .greeting-emoji {
-  font-size: 28px;
+  font-size: 32px;
   margin-bottom: 4px;
 }
 
 .greeting .greeting-text {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 600;
   line-height: 1.3;
 }
 
 .greeting .greeting-date {
-  font-size: 15px;
+  font-size: 17px;
   color: var(--color-text-light);
   margin-top: 4px;
 }
@@ -530,7 +541,7 @@ input, textarea {
 }
 
 .record-progress-text {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-text-light);
   text-align: center;
 }
@@ -615,12 +626,12 @@ input, textarea {
 }
 
 .chat-header .ch-name {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 500;
 }
 
 .chat-header .ch-subtitle {
-  font-size: 12px;
+  font-size: 14px;
   color: #999;
 }
 
@@ -686,11 +697,11 @@ input, textarea {
 
 .topic-tag {
   display: inline-block;
-  padding: 10px 16px;
+  padding: 10px 18px;
   background: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: 20px;
-  font-size: 15px;
+  font-size: 17px;
   color: var(--color-text);
   flex-shrink: 0;
 }
@@ -704,10 +715,10 @@ input, textarea {
 /* 话题 chips（对话页） */
 .topic-chip {
   display: inline-block;
-  padding: 8px 16px;
+  padding: 10px 18px;
   background: #FFF0E0;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--color-text);
   flex-shrink: 0;
   cursor: pointer;
@@ -801,13 +812,13 @@ input, textarea {
 }
 
 .stat-card .stat-num {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .stat-card .stat-label {
-  font-size: 12px;
+  font-size: 14px;
   opacity: 0.8;
   margin-top: 4px;
 }
@@ -849,7 +860,7 @@ input, textarea {
 }
 
 .timeline-item .tl-date {
-  font-size: 13px;
+  font-size: 15px;
   color: #999;
   margin-bottom: 4px;
 }
@@ -862,14 +873,14 @@ input, textarea {
 }
 
 .timeline-item .tl-person {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
   color: #3C2415;
   margin-bottom: 4px;
 }
 
 .timeline-item .tl-summary {
-  font-size: 13px;
+  font-size: 15px;
   color: #666;
   margin-bottom: 8px;
   display: -webkit-box;
@@ -908,7 +919,7 @@ input, textarea {
   background: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: 16px;
-  font-size: 15px;
+  font-size: 17px;
   color: var(--color-text);
 }
 
@@ -935,7 +946,7 @@ input, textarea {
 
 .name-input-section .input-group .input-field {
   text-align: center;
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 16px;
 }
 
@@ -955,13 +966,13 @@ input, textarea {
 }
 
 .topic-guide-card .tg-question {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   margin-bottom: 4px;
 }
 
 .topic-guide-card .tg-hint {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-text-light);
 }
 

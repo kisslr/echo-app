@@ -6,7 +6,13 @@ echo ========================================
 echo.
 echo 正在打包提交材料...
 
-powershell Compress-Archive -Path app.py,requirements.txt,install.bat,start.bat,README.md,PPT生成Prompt.txt,.env.example,.gitignore,templates,static,android-bridge,deploy,data -DestinationPath echo-app-submission.zip -Force
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0pack.ps1"
+if errorlevel 1 (
+  echo.
+  echo 打包失败，请检查上方错误信息。
+  pause
+  exit /b 1
+)
 
 echo.
 echo 打包完成: echo-app-submission.zip

@@ -1,5 +1,6 @@
 # 回声 - Git 忽略规则
 .env
+.submission_stage/
 __pycache__/
 *.pyc
 /uploads/

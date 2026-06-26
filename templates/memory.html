@@ -33,7 +33,7 @@
   <!-- 空状态 -->
   <div class="empty-state-card" id="timelineEmpty">
     <div class="empty-icon" style="font-size:36px;">📜</div>
-    <div class="empty-title" style="font-size:15px;">还没有对话记录</div>
+    <div class="empty-title" style="font-size:17px;">还没有对话记录</div>
     <div class="empty-desc">去和保存的声音说说话吧</div>
     <a class="empty-btn" href="/">去对话</a>
   </div>
@@ -45,7 +45,7 @@
     <span class="section-title">经常聊到的话题</span>
   </div>
   <div class="tag-cloud" id="tagCloud" style="padding-bottom:80px;">
-    <span style="font-size:13px;color:#999;">加载中...</span>
+    <span style="font-size:17px;color:#999;">加载中...</span>
   </div>
 </div>
 
@@ -209,7 +209,7 @@
             '<span class="tl-play">▶ 播放录音 · ' + item.totalMsgs + '条消息</span>' +
           '</div>' +
           '<div class="timeline-accordion-body">' +
-            '<div style="padding:12px 14px; font-size:13px; color:#666; line-height:1.6;">' +
+            '<div style="padding:12px 14px; font-size:17px; color:#666; line-height:1.6;">' +
               escapeHTML(item.lastContent) +
             '</div>' +
           '</div>' +
@@ -250,7 +250,7 @@
     }
 
     if (entries.length === 0) {
-      cloud.innerHTML = '<span style="font-size:13px;color:#999;">多聊聊天，这里会出现话题标签</span>';
+      cloud.innerHTML = '<span style="font-size:17px;color:#999;">多聊聊天，这里会出现话题标签</span>';
       return;
     }
 

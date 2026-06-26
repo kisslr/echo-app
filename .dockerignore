@@ -1,0 +1,10 @@
+.env
+.git
+.github
+.submission_stage
+__pycache__
+*.pyc
+*.zip
+data/echo.db
+uploads/
+复赛备战计划.md
