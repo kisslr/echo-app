@@ -27,10 +27,17 @@ os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 
+def get_vivo_app_key():
+    """Return the configured vivo AIGC AppKey, or None when cloud AI is disabled."""
+    app_key = os.environ.get('VIVO_APP_KEY', '').strip()
+    if not app_key:
+        app_key = os.environ.get('BLUELM_API_KEY', '').strip()
+    return app_key or None
+
+
 def get_bluelm_api_key():
-    """Return the configured vivo BlueLM API key, or None when cloud AI is disabled."""
-    api_key = os.environ.get('BLUELM_API_KEY', '').strip()
-    return api_key or None
+    """Backward-compatible alias for older docs and deployments."""
+    return get_vivo_app_key()
 
 
 def get_db():
@@ -156,7 +163,7 @@ def api_debug():
     api_key = get_bluelm_api_key()
     if not api_key:
         result["cloud_api"]["status"] = "not_configured"
-        result["cloud_api"]["error"] = "未配置 BLUELM_API_KEY，当前使用本地引擎兜底"
+        result["cloud_api"]["error"] = "未配置 VIVO_APP_KEY，当前使用本地引擎兜底"
         result["verdict"] = "云端API未配置，当前使用本地引擎兜底——对话仍可用"
         return jsonify(result)
 
@@ -184,7 +191,9 @@ def api_debug():
                 result["cloud_api"]["error"] = "No choices in response"
         elif resp.status_code == 401 or resp.status_code == 403:
             result["cloud_api"]["status"] = "auth_failed"
-            result["cloud_api"]["error"] = f"HTTP {resp.status_code} — AppKey可能失效"
+            result["cloud_api"]["error"] = (
+                f"HTTP {resp.status_code} — AppKey无效、鉴权头格式错误，或当前应用未开通该能力"
+            )
         else:
             result["cloud_api"]["status"] = "http_error"
             result["cloud_api"]["error"] = f"HTTP {resp.status_code}"
@@ -412,7 +421,7 @@ def call_bluelm_cloud(voice_name, user_message, history):
 
     端点: https://api-ai.vivo.com.cn/v1/chat/completions
     模型: DeepSeek(优先), 通义千问 等（通过蓝心平台统一网关）
-    凭证: 环境变量 BLUELM_API_KEY
+    凭证: 环境变量 VIVO_APP_KEY（兼容 BLUELM_API_KEY）
     如果 API 不可用, 返回 None → 自动降级到本地 mock
     """
     api_key = get_bluelm_api_key()
@@ -739,7 +748,7 @@ def api_config():
         "local_fallback": "generate_mock_reply() - 10类语义匹配",
         "api_key_required_for_cloud": True,
         "cloud_api_configured": bool(get_bluelm_api_key()),
-        "deployment": "HuggingFace Spaces (Docker) / 本地Flask",
+        "deployment": "Sealos (待部署主评审) / HuggingFace Spaces (备用演示) / 本地Flask",
         "backend_role": "数据持久化 + API路由 + 降级引擎"
     })
 

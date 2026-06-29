@@ -33,9 +33,9 @@ def test_env():
     print("=" * 50)
     print("  [1] 环境检查")
     print("=" * 50)
-    api_key = os.environ.get('BLUELM_API_KEY', '').strip()
+    api_key = os.environ.get('VIVO_APP_KEY', '').strip() or os.environ.get('BLUELM_API_KEY', '').strip()
     has_custom_key = bool(api_key)
-    print(f"  API Key: {'[OK] 已配置(.env/环境变量)' if has_custom_key else '[WARN] 未配置，云端API测试将跳过'}")
+    print(f"  vivo AppKey: {'[OK] 已配置(.env/环境变量)' if has_custom_key else '[WARN] 未配置，云端API测试将跳过'}")
     print(f"  API 端点: https://api-ai.vivo.com.cn/v1/chat/completions")
     return api_key
 
@@ -48,9 +48,9 @@ def test_cloud_api(api_key):
     print("=" * 50)
 
     if not api_key:
-        print("  未检测到 BLUELM_API_KEY。")
+        print("  未检测到 VIVO_APP_KEY。")
         print("  -> 为避免在代码包中泄露密钥，提交版不内置 AppKey。")
-        print("  -> 配置 .env 后可运行真实云端调用；未配置时应用会自动使用本地引擎兜底。")
+        print("  -> 不配置也能完整运行；配置后可额外验证云端调用。")
         return
 
     try:

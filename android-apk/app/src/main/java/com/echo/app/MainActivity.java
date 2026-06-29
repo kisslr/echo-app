@@ -29,6 +29,9 @@ import androidx.core.content.ContextCompat;
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
+    // ★ 部署后修改此 URL 为你的实际地址：
+    //    - Sealos 国内部署: https://xxx.cloud.sealos.run
+    //    - HuggingFace 备用: https://break66-echo-app.hf.space
     private static final String APP_URL = "https://break66-echo-app.hf.space";
     private static final int PERMISSION_REQUEST_CODE = 100;
 
@@ -64,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // 注册 JSBridge：Web 端通过 window.BlueLM 调用端侧 SDK
-        webView.addJavascriptInterface(new WebAppInterface(this), "BlueLM");
+        webView.addJavascriptInterface(new WebAppInterface(webView), "BlueLM");
 
         webView.setWebViewClient(new WebViewClient() {
             @Override

@@ -26,8 +26,7 @@ $files = @(
     ".env.example",
     ".gitignore",
     ".dockerignore",
-    "Dockerfile",
-    "PPT生成Prompt.txt"
+    "Dockerfile"
 )
 
 foreach ($file in $files) {
@@ -35,6 +34,13 @@ foreach ($file in $files) {
     if (Test-Path -LiteralPath $src) {
         Copy-Item -LiteralPath $src -Destination (Join-Path $stage $file) -Force
     }
+}
+
+$pptPrompt = Get-ChildItem -LiteralPath $root -File |
+    Where-Object { $_.Name -like "*Prompt.txt" } |
+    Select-Object -First 1
+if ($pptPrompt) {
+    Copy-Item -LiteralPath $pptPrompt.FullName -Destination (Join-Path $stage "PPT-Prompt.md") -Force
 }
 
 $dirs = @(

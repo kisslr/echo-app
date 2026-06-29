@@ -10,7 +10,7 @@
 
 浏览器打开：
 ```
-https://你的用户名-echo-app.hf.space/test
+https://你的部署地址/test
 ```
 
 预期返回：
@@ -18,13 +18,13 @@ https://你的用户名-echo-app.hf.space/test
 {"message":"服务正常运行","status":"ok"}
 ```
 
-如果不是这个结果 → 应用没启动，去 HF App 标签看构建日志。
+如果不是这个结果 → 先看当前部署平台的运行日志；本地运行则检查 `start.bat` 和终端输出。
 
 ### 1.2 AI 引擎状态检查（核心）
 
 浏览器打开：
 ```
-https://你的用户名-echo-app.hf.space/api/debug
+https://你的部署地址/api/debug
 ```
 
 关键字段解读：
@@ -32,9 +32,9 @@ https://你的用户名-echo-app.hf.space/api/debug
 | `cloud_api.status` | 含义 | 对话使用的引擎 |
 |-------------------|------|-------------|
 | `ok` | 蓝心平台云端 API 连通 | 真 · 大模型 |
-| `not_configured` | 未配置 `BLUELM_API_KEY` | 本地自然语言引擎 |
-| `unreachable` | HF 服务器连不上 vivo API（海外网络限制） | 本地自然语言引擎 |
-| `auth_failed` | AppKey 过期或无效 | 本地自然语言引擎 |
+| `not_configured` | 未配置 vivo AIGC 官网 AppKey（`VIVO_APP_KEY`） | 本地自然语言引擎 |
+| `unreachable` | 当前运行环境连不上 vivo API（通常是海外网络限制或防火墙） | 本地自然语言引擎 |
+| `auth_failed` | AppKey 过期、无效、鉴权头错误或应用未开通该能力 | 本地自然语言引擎 |
 | `http_error` | API 返回异常状态码 | 本地自然语言引擎 |
 
 **无论哪种状态，对话功能都正常可用**——这是三层降级架构的核心保障。
@@ -93,7 +93,7 @@ F12 → **Console**（控制台）标签。
 ### 2.3 系统配置查看
 
 ```
-https://你的用户名-echo-app.hf.space/api/config
+https://你的部署地址/api/config
 ```
 
 返回当前系统架构配置、模型列表、部署信息。
@@ -102,7 +102,7 @@ https://你的用户名-echo-app.hf.space/api/config
 
 **同一设备、同一浏览器**：关闭标签页再打开，聊天历史保留（localStorage），声音档案保留（SQLite 服务端）。
 
-**跨设备或 HF 重新构建后**：SQLite 数据丢失（Docker 容器重建），但浏览器 localStorage 中的聊天历史不受影响。
+**跨设备或容器重建后**：SQLite 数据会丢失（容器重建），但浏览器 localStorage 中的聊天历史不受影响。
 
 验证方法：
 1. 创建一个声音档案，发几条对话
@@ -113,7 +113,7 @@ https://你的用户名-echo-app.hf.space/api/config
 ### 2.5 数据统计查看
 
 ```
-https://你的用户名-echo-app.hf.space/api/stats
+https://你的部署地址/api/stats
 ```
 
 返回声音档案数、对话总数、最常聊的人。此接口同时验证 SQLite 数据库正常运作。
@@ -161,7 +161,7 @@ http://电脑IP:7860
 http://电脑IP:7860/api/debug
 ```
 
-本地运行时通常云端 API 可用（国内网络环境），返回 `cloud_api.status: "ok"`。
+本地运行时如果已配置 `VIVO_APP_KEY` 且网络可访问 vivo API，才会返回 `cloud_api.status: "ok"`；未配置时通常返回 `not_configured`。AppKey 获取入口为 `https://aigc.vivo.com.cn/#/platform`。
 
 ---
 

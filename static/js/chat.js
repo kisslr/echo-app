@@ -261,35 +261,47 @@ var Chat = {
 
       var fullReply = '';
       var isResolved = false;
+      var callbackName = '__echoBlueLMCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+
+      function cleanup() {
+        try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+      }
 
       // 守卫2：超时熔断 — 5秒无响应强制降级到云端
       var timeoutId = setTimeout(function() {
         if (!isResolved) {
           isResolved = true;
+          cleanup();
           reject(new Error('On-device inference timeout'));
         }
       }, 5000);
 
       try {
-        window.BlueLM.chat(message, function(result) {
+        // Android JavascriptInterface 无法可靠接收 JS 函数对象；
+        // 这里注册全局回调名，由 Java 端 evaluateJavascript(callbackName + "(...)") 回传。
+        window[callbackName] = function(result) {
           if (isResolved) return;
           if (result.error) {
             isResolved = true;
             clearTimeout(timeoutId);
+            cleanup();
             reject(new Error(result.error));
           } else if (result.done) {
             isResolved = true;
             clearTimeout(timeoutId);
+            cleanup();
             resolve({ content: fullReply, audio_url: null, model_used: 'bluelm-3b-ondevice' });
           } else if (result.token) {
             fullReply += result.token;
           }
-        });
+        };
+        window.BlueLM.chat(message, callbackName);
       } catch (e) {
         // 守卫3：同步异常捕获
         if (!isResolved) {
           isResolved = true;
           clearTimeout(timeoutId);
+          cleanup();
           reject(e);
         }
       }

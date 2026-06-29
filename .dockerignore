@@ -5,6 +5,8 @@
 __pycache__
 *.pyc
 *.zip
+output/
+tmp/
 data/echo.db
 uploads/
 复赛备战计划.md

@@ -5,5 +5,7 @@ __pycache__/
 *.pyc
 /uploads/
 /data/echo.db
+tmp/
+output/
 *.zip
 cloudflared.exe

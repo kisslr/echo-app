@@ -1,12 +1,13 @@
 === 回声 - 部署指南 ===
 
 ═══════════════════════════════════
-推荐方案: Sealos（国内，云端AI可用）
+推荐方案: Sealos（国内，云端AI可用，当前待部署）
 ═══════════════════════════════════
 平台: sealos.run
 费用: 实名送5元（≈1000次AI对话）
 优点: 国内服务器 → 能直连 vivo 蓝心平台 API → 大模型真正可用
 域名: https://xxx.cloud.sealos.run（永久有效，HTTPS）
+用途: **主评审地址 / 真实云端大模型演示地址（部署完成后启用）**
 
 详细步骤见 deploy/SEALOS.md
 
@@ -17,6 +18,7 @@
 费用: 永久免费
 缺点: 海外服务器 → 无法访问 vivo 国内 API → 云端AI走本地引擎兜底
 域名: https://break66-echo-app.hf.space
+用途: 备用演示地址 / 产品流程展示地址
 
 上传步骤:
 1. 打开 https://huggingface.co/spaces/break66/echo-app
@@ -33,6 +35,7 @@
 3. 双击 start.bat 启动服务
 4. 手机连同一WiFi，浏览器访问 http://电脑IP:7860
 
-本地运行时，如已配置 BLUELM_API_KEY 且网络可访问 vivo API，云端AI可用。
+本地运行时，如已配置 VIVO_APP_KEY 且网络可访问 vivo API，云端AI可用。
+VIVO_APP_KEY 从 https://aigc.vivo.com.cn/#/platform 获取，接口鉴权格式为 Authorization: Bearer AppKey。
 未配置时会自动使用本地自然语言引擎兜底。
 一键测试: python test_api.py

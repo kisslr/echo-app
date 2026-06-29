@@ -1,6 +1,6 @@
-# PythonAnywhere WSGI 配置文件
-# 部署到免费云平台后, 评委用手机浏览器打开 https://你的用户名.pythonanywhere.com 即可
-# 不需要你的电脑开机, 不需要 cloudflared, 永久在线
+# PythonAnywhere WSGI 配置文件（历史备用示例，非当前主评审方案）
+# 如需部署到 PythonAnywhere，可让评委访问 https://你的用户名.pythonanywhere.com
+# 当前正式评审口径仍以 Sealos 国内部署为主
 
 import sys
 import os

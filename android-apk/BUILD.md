@@ -5,6 +5,8 @@
 - JDK 17
 - Android SDK 34
 
+说明：本目录是 Android Studio 工程，不内置 `gradlew` / `gradle-wrapper.jar`。请使用 Android Studio 自带 Gradle 或本机已安装 Gradle 同步构建。
+
 ## 构建步骤
 
 1. 用 Android Studio 打开 `android-apk/` 目录

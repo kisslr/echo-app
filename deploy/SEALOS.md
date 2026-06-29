@@ -1,5 +1,7 @@
 # 回声 · 国内部署方案（Sealos）
 
+> 当前为部署准备文档。Sealos 还未最终完成时，先按这里准备，完成后再把域名写入 README 和 PPT。
+
 ## 为什么选 Sealos
 - 国内服务器，能直连 `api-ai.vivo.com.cn`（vivo 蓝心平台）
 - 支持 Docker 部署，直接用现有 Dockerfile
@@ -18,23 +20,40 @@
 ### 第 2 步：部署应用
 1. 进入控制台 → 点「应用管理」
 2. 点「新建应用」→ 选「容器应用」
-3. 镜像来源选「上传代码」→ 上传整个 `echo-app/` 目录
-4. Sealos 自动检测 Dockerfile 并构建
-5. 端口设置：容器端口填 `7860`
-6. 内存分配：256MB（够用）
-7. 点「部署」
+3. 二选一：
+   - 方案 A：镜像来源选「镜像仓库」，镜像地址填 `docker.io/imbeharryst/echo-app:latest`
+   - 方案 B：镜像来源选「上传代码」，上传整个 `echo-app/` 目录，让 Sealos 自动检测 Dockerfile 构建
+4. 端口设置：容器端口填 `7860`
+5. 内存分配：256MB（够用）
+6. 点「部署」
 
 ### 第 3 步：获取链接
 1. 部署完成后 → 点「访问地址」
 2. 系统自动分配域名：`https://xxx.cloud.sealos.run`
 3. 复制这个链接 → 填入 PPT、README、提交系统
 
-### 第 4 步：设置环境变量（可选）
-在 Sealos 应用设置 → 环境变量中添加：
+### 第 4 步：设置环境变量（可选加分）
+先打开 `https://aigc.vivo.com.cn/#/platform`，在 AIGC 官网获取当前应用的 AppKey。
+
+然后在 Sealos 应用设置 → 环境变量中添加：
 ```
-BLUELM_API_KEY=你的vivo比赛AppKey
+VIVO_APP_KEY=你的vivo比赛AppKey
 ```
-不设置也可以运行完整产品流程，但云端大模型会降级为本地自然语言引擎。
+不设置也可以运行完整产品流程，但云端大模型会降级为本地自然语言引擎。对成品提交来说，这不是缺陷，只是少了云端加分项。
+
+### 第 5 步：部署后立即验证
+1. 打开 `https://你的域名/test`
+2. 再打开 `https://你的域名/api/debug`
+3. 只有当返回 `cloud_api.status = ok` 时，这个地址才适合展示“云端加分验证”
+
+如果 `/api/debug` 返回 `auth_failed`，通常对应以下情况：
+- AppKey 填错或过期
+- 请求头鉴权失败，接口文档要求格式为 `Authorization: Bearer AppKey`
+- 当前应用没有申请到对应大模型能力，需要在 vivo AIGC 平台确认能力权限
+
+### 当前提醒
+- Sealos 还没配好之前，不要在 PPT、README、提交系统里写“已完成主评审部署”
+- 本文件里的域名和环境变量示例，只有在你实测通过后才替换成最终内容
 
 ## 与 HF 对比
 
